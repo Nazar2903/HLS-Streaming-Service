@@ -1,0 +1,13 @@
+bin/
+obj/
+*.DotSettings.user
+*.http
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vscode/
+.idea/
+*.log
+*.cache
+appsettings.Development.json
