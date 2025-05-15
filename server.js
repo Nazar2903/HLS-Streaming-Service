@@ -103,6 +103,7 @@ const convertToHLS = (inputPath, outputFolder, outputFileName) => {
         '-hls_list_size 0',
         '-hls_segment_filename',
         `${outputFolder}/segment_%03d.ts`,
+        '-preset ultrafast',
       ])
       .output(`${outputFolder}/${outputFileName}`)
       .on('end', () => {
