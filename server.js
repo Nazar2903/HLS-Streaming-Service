@@ -98,8 +98,8 @@ const convertToHLS = (inputPath, outputFolder, outputFileName) => {
     ffmpeg(inputPath)
       .outputOptions([
         '-c:a aac',
-        '-b:a 128k',
-        '-hls_time 10',
+        '-b:a 64k',
+        '-hls_time 5',
         '-hls_list_size 0',
         '-hls_segment_filename',
         `${outputFolder}/segment_%03d.ts`,
@@ -165,39 +165,43 @@ app.post('/api/upload', isAuthenticated, upload.single('audio'), async (req, res
     }
 
     const trackId = Date.now();
-    const outputFolder = `./public/uploads/temp/track_${trackId}`;
+    const outputFolder = `./uploads/temp/track_${trackId}`;
     const outputFileName = 'playlist.m3u8';
 
     await fs.mkdir(outputFolder, { recursive: true });
 
+    console.time('HLS Conversion');
     await convertToHLS(req.file.path, outputFolder, outputFileName);
+    console.timeEnd('HLS Conversion');
 
     const files = await fs.readdir(outputFolder);
     if (!files.length) {
       return res.status(500).json({ message: 'HLS файли не створено' });
     }
 
-    for (const file of files) {
+    const uploadPromises = files.map(async (file) => {
       const filePath = path.join(outputFolder, file);
       const fileContent = await fs.readFile(filePath);
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: 'hls-streaming-files',
-          Key: `track_${trackId}/${file}`,
-          Body: fileContent,
-          ContentType: file.endsWith('.m3u8') ? 'application/vnd.apple.mpegurl' : 'video/MP2T',
-          CacheControl: 'max-age=31536000',
-          ACL: 'public-read',
-        })
-      );
-    }
+      return s3Client.send(new PutObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME || 'hls-streaming-files',
+        Key: `track_${trackId}/${file}`,
+        Body: fileContent,
+        ContentType: file.endsWith('.m3u8') ? 'application/vnd.apple.mpegurl' : 'video/MP2T',
+        CacheControl: 'max-age=31536000',
+        ACL: 'public-read',
+      }));
+    });
+
+    console.time('S3 Upload');
+    await Promise.all(uploadPromises);
+    console.timeEnd('S3 Upload');
 
     await fs.rm(outputFolder, { recursive: true, force: true });
     await fs.unlink(req.file.path);
 
     const track = new Track({
       name: req.file.originalname,
-      url: `https://hls-streaming-files.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/track_${trackId}/${outputFileName}`,
+      url: `https://${process.env.S3_BUCKET_NAME || 'hls-streaming-files'}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/track_${trackId}/${outputFileName}`,
       folder: `track_${trackId}`,
       userId: req.session.userId,
     });
