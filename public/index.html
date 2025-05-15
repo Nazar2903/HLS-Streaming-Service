@@ -112,6 +112,7 @@
 
   <script type="text/babel">
     let currentTrackId = null;
+    const API_BASE_URL = "https://hls-streaming-service.onrender.com";
 
     const showLogin = () => {
       document.getElementById("auth").classList.remove("hidden");
@@ -148,7 +149,7 @@
     const checkAuth = async () => {
       currentTrackId = null;
       try {
-        const response = await axios.get("/api/user");
+        const response = await axios.get(`${API_BASE_URL}/api/user`);
         showUser(response.data.user.username);
         fetchTracks();
       } catch (err) {
@@ -161,7 +162,7 @@
       const username = document.getElementById("register-username").value;
       const password = document.getElementById("register-password").value;
       try {
-        const response = await axios.post("/api/register", {
+        const response = await axios.post(`${API_BASE_URL}/api/register`, {
           email,
           username,
           password,
@@ -175,7 +176,7 @@
       const username = document.getElementById("login-username").value;
       const password = document.getElementById("login-password").value;
       try {
-        const response = await axios.post("/api/login", { username, password });
+        const response = await axios.post(`${API_BASE_URL}/api/login`, { username, password });
         showUser(response.data.user.username);
         fetchTracks();
       } catch (err) {}
@@ -183,7 +184,7 @@
 
     const logout = async () => {
       try {
-        await axios.post("/api/logout");
+        await axios.post(`${API_BASE_URL}/api/logout`);
         showLogin();
         const trackList = document.getElementById("track-list");
         const tracks = trackList.children;
@@ -216,7 +217,7 @@
       uploadProgress.classList.remove("hidden");
 
       try {
-        await axios.post("/api/upload", formData, {
+        await axios.post(`${API_BASE_URL}/api/upload`, formData, {
           onUploadProgress: (progressEvent) => {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             progressBar.style.width = `${percentCompleted}%`;
@@ -236,7 +237,7 @@
 
     const fetchTracks = async () => {
       try {
-        const response = await axios.get(`/api/tracks`);
+        const response = await axios.get(`${API_BASE_URL}/api/tracks`);
         const tracks = response.data;
         const trackList = document.getElementById("track-list");
         trackList.innerHTML = tracks
@@ -282,7 +283,7 @@
 
     const deleteTrack = async (id) => {
       try {
-        await axios.delete(`/api/tracks/${id}`);
+        await axios.delete(`${API_BASE_URL}/api/tracks/${id}`);
         if (currentTrackId === id) currentTrackId = null;
         fetchTracks();
       } catch (err) {}
