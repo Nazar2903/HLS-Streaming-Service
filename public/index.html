@@ -9,79 +9,82 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     body {
-      background-color: #0e2d1e; /* Оновлено з #1A3C34 */
-      color: #E8ECEB;
+      background-color: #F5F7F6;
+      color: #2F4F4F;
     }
     #app {
-      background-color: #3e6b4c; /* Оновлено з #0F2723 */
+      background-color: #FFFFFF;
       border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     .gradient-bg {
-      background: linear-gradient(135deg, #73b387 0%, #2E7D68 100%); /* Оновлено першу частину градієнта */
+      background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
     }
     .button-primary {
-      background-color: #27A66B;
+      background-color: #4CAF50;
       transition: background-color 0.3s ease;
+      color: white;
     }
     .button-primary:hover {
-      background-color: #1F8C5A;
+      background-color: #45A049;
     }
     .button-secondary {
-      background-color: #2E7D68;
+      background-color: #81C784;
       transition: background-color 0.3s ease;
+      color: white;
     }
     .button-secondary:hover {
-      background-color: #246751;
+      background-color: #66BB6A;
     }
     .card {
-      background-color: #224B43;
+      background-color: #E8F5E9;
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     .card-active {
-      border: 2px solid #4ADE80;
-      box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+      border: 2px solid #4CAF50;
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
     }
     .progress-bar {
       height: 8px;
-      background-color: #27A66B;
+      background-color: #4CAF50;
       border-radius: 4px;
       transition: width 0.3s ease;
     }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center">
-  <header class="w-full py-4 bg-[#0e2d1e] border-b border-gray-700 hidden"> <!-- Оновлено з #1A3C34 -->
+  <header class="w-full py-4 bg-[#F5F7F6] border-b border-gray-200 hidden">
     <div id="user-info" class="max-w-5xl mx-auto px-6 flex items-center space-x-4">
       <p class="text-xl">
-        Welcome, <span id="username" class="font-semibold text-green-400"></span>
+        Welcome, <span id="username" class="font-semibold text-[#4CAF50]"></span>
       </p>
-      <button onclick="logout()" class="button-secondary p-2 rounded-lg text-white">Logout</button>
+      <button onclick="logout()" class="button-secondary p-2 rounded-lg">Logout</button>
     </div>
   </header>
   <div id="app" class="w-full max-w-5xl p-6 flex-1 mx-auto">
     <div id="auth" class="min-h-screen flex flex-col items-center justify-center">
       <div id="login-form">
-        <h2 class="text-3xl font-bold mb-6 text-white text-center">Login</h2>
+        <h2 class="text-3xl font-bold mb-6 text-[#2F4F4F] text-center">Login</h2>
         <form onsubmit="event.preventDefault(); login()" class="space-y-4 max-w-md w-full">
-          <input id="login-username" type="text" placeholder="Username" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
-          <input id="login-password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
-          <button type="submit" class="button-primary w-full p-3 rounded-lg text-white font-semibold">Login</button>
+          <input id="login-username" type="text" placeholder="Username" required class="w-full p-3 border border-gray-300 rounded-lg bg-white text-[#2F4F4F] focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" />
+          <input id="login-password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded-lg bg-white text-[#2F4F4F] focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" />
+          <button type="submit" class="button-primary w-full p-3 rounded-lg font-semibold">Login</button>
         </form>
-        <p class="mt-4 text-gray-300 text-center">
-          Don't have an account? <a href="#" onclick="showRegister()" class="text-green-400 hover:text-green-300">Register</a>
+        <p class="mt-4 text-gray-600 text-center">
+          Don't have an account? <a href="#" onclick="showRegister()" class="text-[#4CAF50] hover:text-[#45A049]">Register</a>
         </p>
       </div>
       <div id="register-form" class="hidden">
-        <h2 class="text-3xl font-bold mb-6 text-white text-center">Register</h2>
+        <h2 class="text-3xl font-bold mb-6 text-[#2F4F4F] text-center">Register</h2>
         <form onsubmit="event.preventDefault(); register()" class="space-y-4 max-w-md w-full">
-          <input id="register-email" type="email" placeholder="Email" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
-          <input id="register-username" type="text" placeholder="Username" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
-          <input id="register-password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
-          <button type="submit" class="button-primary w-full p-3 rounded-lg text-white font-semibold">Register</button>
+          <input id="register-email" type="email" placeholder="Email" required class="w-full p-3 border border-gray-300 rounded-lg bg-white text-[#2F4F4F] focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" />
+          <input id="register-username" type="text" placeholder="Username" required class="w-full p-3 border border-gray-300 rounded-lg bg-white text-[#2F4F4F] focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" />
+          <input id="register-password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-300 rounded-lg bg-white text-[#2F4F4F] focus:outline-none focus:ring-2 focus:ring-[#4CAF50]" />
+          <button type="submit" class="button-primary w-full p-3 rounded-lg font-semibold">Register</button>
         </form>
-        <p class="mt-4 text-gray-300 text-center">
-          Already have an account? <a href="#" onclick="showLogin()" class="text-green-400 hover:text-green-300">Login</a>
+        <p class="mt-4 text-gray-600 text-center">
+          Already have an account? <a href="#" onclick="showLogin()" class="text-[#4CAF50] hover:text-[#45A049]">Login</a>
         </p>
       </div>
     </div>
@@ -91,13 +94,13 @@
         <input type="file" accept="audio/*" onchange="handleFileUpload(event)" class="hidden" />
       </label>
       <div id="upload-progress" class="mt-2 hidden w-full max-w-md">
-        <div class="w-full bg-gray-700 rounded-full h-2">
+        <div class="w-full bg-gray-200 rounded-full h-2">
           <div id="progress-bar" class="progress-bar" style="width: 0;"></div>
         </div>
       </div>
     </div>
     <div id="tracks" class="space-y-6">
-      <h2 class="text-3xl font-bold text-white text-center">Your Tracks</h2>
+      <h2 class="text-3xl font-bold text-[#2F4F4F] text-center">Your Tracks</h2>
       <div id="track-list" class="space-y-4 mx-auto w-[80%]"></div>
     </div>
     <div id="player" class="mt-8 flex justify-center hidden">
@@ -106,7 +109,7 @@
       </div>
     </div>
   </div>
-  <footer class="w-full py-4 text-center text-gray-400 bg-[#0e2d1e] border-t border-gray-700"> <!-- Оновлено з #1A3C34 -->
+  <footer class="w-full py-4 text-center text-gray-600 bg-[#F5F7F6] border-t border-gray-200">
     CoolGuysTeam
   </footer>
 
