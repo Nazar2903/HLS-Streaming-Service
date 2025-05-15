@@ -109,7 +109,7 @@
       </div>
     </div>
   </div>
-  <footer class="w-full py-4 text-center text-gray-400 bg-[#1A2B26] border-t border-gray-800">
+  <footer class="w-full py-4 text-center text-gray-400 bg-[#1A2B26] border-t border-gray-800 hidden">
     CoolGuysTeam
   </footer>
 
@@ -147,6 +147,7 @@
       document.getElementById("auth").classList.add("hidden");
       document.getElementById("player").classList.add("hidden");
       document.querySelector("header").classList.remove("hidden");
+      document.getElementById("footer").classList.remove("hidden");
     };
 
     const checkAuth = async () => {
