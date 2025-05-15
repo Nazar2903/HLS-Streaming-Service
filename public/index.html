@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HLS Streaming Service</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body {
+      background-color: #0e2d1e; /* Оновлено з #1A3C34 */
+      color: #E8ECEB;
+    }
+    #app {
+      background-color: #3e6b4c; /* Оновлено з #0F2723 */
+      border-radius: 12px;
+    }
+    .gradient-bg {
+      background: linear-gradient(135deg, #73b387 0%, #2E7D68 100%); /* Оновлено першу частину градієнта */
+    }
+    .button-primary {
+      background-color: #27A66B;
+      transition: background-color 0.3s ease;
+    }
+    .button-primary:hover {
+      background-color: #1F8C5A;
+    }
+    .button-secondary {
+      background-color: #2E7D68;
+      transition: background-color 0.3s ease;
+    }
+    .button-secondary:hover {
+      background-color: #246751;
+    }
+    .card {
+      background-color: #224B43;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    .card-active {
+      border: 2px solid #4ADE80;
+      box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+    }
+    .progress-bar {
+      height: 8px;
+      background-color: #27A66B;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center">
+  <header class="w-full py-4 bg-[#0e2d1e] border-b border-gray-700 hidden"> <!-- Оновлено з #1A3C34 -->
+    <div id="user-info" class="max-w-5xl mx-auto px-6 flex items-center space-x-4">
+      <p class="text-xl">
+        Welcome, <span id="username" class="font-semibold text-green-400"></span>
+      </p>
+      <button onclick="logout()" class="button-secondary p-2 rounded-lg text-white">Logout</button>
+    </div>
+  </header>
+  <div id="app" class="w-full max-w-5xl p-6 flex-1 mx-auto">
+    <div id="auth" class="min-h-screen flex flex-col items-center justify-center">
+      <div id="login-form">
+        <h2 class="text-3xl font-bold mb-6 text-white text-center">Login</h2>
+        <form onsubmit="event.preventDefault(); login()" class="space-y-4 max-w-md w-full">
+          <input id="login-username" type="text" placeholder="Username" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
+          <input id="login-password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
+          <button type="submit" class="button-primary w-full p-3 rounded-lg text-white font-semibold">Login</button>
+        </form>
+        <p class="mt-4 text-gray-300 text-center">
+          Don't have an account? <a href="#" onclick="showRegister()" class="text-green-400 hover:text-green-300">Register</a>
+        </p>
+      </div>
+      <div id="register-form" class="hidden">
+        <h2 class="text-3xl font-bold mb-6 text-white text-center">Register</h2>
+        <form onsubmit="event.preventDefault(); register()" class="space-y-4 max-w-md w-full">
+          <input id="register-email" type="email" placeholder="Email" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
+          <input id="register-username" type="text" placeholder="Username" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
+          <input id="register-password" type="password" placeholder="Password" required class="w-full p-3 border border-gray-600 rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-green-600" />
+          <button type="submit" class="button-primary w-full p-3 rounded-lg text-white font-semibold">Register</button>
+        </form>
+        <p class="mt-4 text-gray-300 text-center">
+          Already have an account? <a href="#" onclick="showLogin()" class="text-green-400 hover:text-green-300">Login</a>
+        </p>
+      </div>
+    </div>
+    <div id="upload" class="mb-8 flex flex-col items-center">
+      <label class="button-primary p-3 rounded-lg cursor-pointer">
+        Upload Track
+        <input type="file" accept="audio/*" onchange="handleFileUpload(event)" class="hidden" />
+      </label>
+      <div id="upload-progress" class="mt-2 hidden w-full max-w-md">
+        <div class="w-full bg-gray-700 rounded-full h-2">
+          <div id="progress-bar" class="progress-bar" style="width: 0;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="tracks" class="space-y-6">
+      <h2 class="text-3xl font-bold text-white text-center">Your Tracks</h2>
+      <div id="track-list" class="space-y-4 mx-auto w-[80%]"></div>
+    </div>
+    <div id="player" class="mt-8 flex justify-center hidden">
+      <div class="w-full max-w-3xl">
+        <video id="video" controls class="w-full max-w-3xl mt-4 rounded-lg shadow-lg"></video>
+      </div>
+    </div>
+  </div>
+  <footer class="w-full py-4 text-center text-gray-400 bg-[#0e2d1e] border-t border-gray-700"> <!-- Оновлено з #1A3C34 -->
+    CoolGuysTeam
+  </footer>
+
+  <script type="text/babel">
+    let currentTrackId = null;
+
+    const showLogin = () => {
+      document.getElementById("auth").classList.remove("hidden");
+      document.getElementById("login-form").classList.remove("hidden");
+      document.getElementById("register-form").classList.add("hidden");
+      document.getElementById("user-info").classList.add("hidden");
+      document.getElementById("upload").classList.add("hidden");
+      document.getElementById("tracks").classList.add("hidden");
+      document.getElementById("player").classList.add("hidden");
+      document.querySelector("header").classList.add("hidden");
+    };
+
+    const showRegister = () => {
+      document.getElementById("auth").classList.remove("hidden");
+      document.getElementById("register-form").classList.remove("hidden");
+      document.getElementById("login-form").classList.add("hidden");
+      document.getElementById("user-info").classList.add("hidden");
+      document.getElementById("upload").classList.add("hidden");
+      document.getElementById("tracks").classList.add("hidden");
+      document.getElementById("player").classList.add("hidden");
+      document.querySelector("header").classList.add("hidden");
+    };
+
+    const showUser = (username) => {
+      document.getElementById("username").textContent = username;
+      document.getElementById("user-info").classList.remove("hidden");
+      document.getElementById("upload").classList.remove("hidden");
+      document.getElementById("tracks").classList.remove("hidden");
+      document.getElementById("auth").classList.add("hidden");
+      document.getElementById("player").classList.add("hidden");
+      document.querySelector("header").classList.remove("hidden");
+    };
+
+    const checkAuth = async () => {
+      currentTrackId = null;
+      try {
+        const response = await axios.get("/api/user");
+        showUser(response.data.user.username);
+        fetchTracks();
+      } catch (err) {
+        showLogin();
+      }
+    };
+
+    const register = async () => {
+      const email = document.getElementById("register-email").value;
+      const username = document.getElementById("register-username").value;
+      const password = document.getElementById("register-password").value;
+      try {
+        const response = await axios.post("/api/register", {
+          email,
+          username,
+          password,
+        });
+        showUser(response.data.user.username);
+        fetchTracks();
+      } catch (err) {}
+    };
+
+    const login = async () => {
+      const username = document.getElementById("login-username").value;
+      const password = document.getElementById("login-password").value;
+      try {
+        const response = await axios.post("/api/login", { username, password });
+        showUser(response.data.user.username);
+        fetchTracks();
+      } catch (err) {}
+    };
+
+    const logout = async () => {
+      try {
+        await axios.post("/api/logout");
+        showLogin();
+        const trackList = document.getElementById("track-list");
+        const tracks = trackList.children;
+        for (let i = 0; i < tracks.length; i++) {
+          tracks[i].classList.remove("card-active");
+          const video = tracks[i].querySelector("video");
+          if (video) video.classList.add("hidden");
+        }
+        trackList.innerHTML = "";
+        document.getElementById("player").classList.add("hidden");
+        currentTrackId = null;
+      } catch (err) {}
+    };
+
+    const handleFileUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const maxSizeMB = 50;
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        alert(`File size exceeds ${maxSizeMB}MB. Please upload a smaller file for faster processing.`);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("audio", file);
+
+      const uploadProgress = document.getElementById("upload-progress");
+      const progressBar = document.getElementById("progress-bar");
+      uploadProgress.classList.remove("hidden");
+
+      try {
+        await axios.post("/api/upload", formData, {
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            progressBar.style.width = `${percentCompleted}%`;
+          },
+        });
+        progressBar.style.width = "100%";
+        setTimeout(() => {
+          uploadProgress.classList.add("hidden");
+          progressBar.style.width = "0%";
+          fetchTracks();
+        }, 500);
+      } catch (err) {
+        uploadProgress.classList.add("hidden");
+        progressBar.style.width = "0%";
+      }
+    };
+
+    const fetchTracks = async () => {
+      try {
+        const response = await axios.get(`/api/tracks`);
+        const tracks = response.data;
+        const trackList = document.getElementById("track-list");
+        trackList.innerHTML = tracks
+          .map(
+            (track) => `
+              <div id="track-${track._id}" class="card p-4 space-y-2 ${currentTrackId === track._id ? 'card-active' : ''}">
+                <div class="flex items-center justify-between">
+                  <span class="cursor-pointer text-green-400 hover:text-green-300" onclick='playTrack(${JSON.stringify(track)})'>${track.name}</span>
+                  <button onclick="deleteTrack('${track._id}')" class="button-secondary p-2 rounded-lg text-white">🗑️</button>
+                </div>
+                <video id="video-${track._id}" controls class="w-full h-12 rounded-lg shadow-lg ${currentTrackId === track._id ? '' : 'hidden'}"></video>
+              </div>
+            `
+          )
+          .join("");
+      } catch (err) {}
+    };
+
+    const playTrack = (track) => {
+      if (currentTrackId) {
+        const currentVideo = document.getElementById(`video-${currentTrackId}`);
+        if (currentVideo) {
+          currentVideo.pause();
+        }
+      }
+
+      currentTrackId = track._id;
+      document.getElementById("player").classList.add("hidden");
+      const trackList = document.getElementById("track-list").children;
+      for (let i = 0; i < trackList.length; i++) {
+        const card = trackList[i];
+        const video = document.getElementById(`video-${track._id}`);
+        if (card.id === `track-${track._id}`) {
+          card.classList.add("card-active");
+          video.classList.remove("hidden");
+        } else {
+          card.classList.remove("card-active");
+          document.getElementById(`video-${card.id.split('-')[1]}`).classList.add("hidden");
+        }
+      }
+      setupPlayer(track);
+    };
+
+    const deleteTrack = async (id) => {
+      try {
+        await axios.delete(`/api/tracks/${id}`);
+        if (currentTrackId === id) currentTrackId = null;
+        fetchTracks();
+      } catch (err) {}
+    };
+
+    const setupPlayer = (track) => {
+      const video = document.getElementById(`video-${track._id}`);
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(track.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(err => {});
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {});
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = track.url;
+        video.addEventListener('loadedmetadata', () => {
+          video.play().catch(err => {});
+        });
+      } else {}
+    };
+
+    checkAuth();
+  </script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</body>
+</html>
