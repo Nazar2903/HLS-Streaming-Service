@@ -99,7 +99,7 @@ const convertToHLS = (inputPath, outputFolder, outputFileName) => {
       .outputOptions([
         '-c:a aac',
         '-b:a 128k',
-        '-hls_time 20',
+        '-hls_time 10',
         '-hls_list_size 0',
         '-hls_segment_filename',
         `${outputFolder}/segment_%03d.ts`,
